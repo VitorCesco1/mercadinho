@@ -8,7 +8,7 @@ export default function CartaoProduto({ p, qtd = 0, selo, onAdd, onMenos }) {
   const esgotado = estoque <= 0;
   const aviso = !esgotado && estoque <= 3 ? (estoque === 1 ? "Última unidade" : `Últimas ${estoque} unidades`) : "";
   return (
-    <article className={`produto${qtd ? " no-carrinho" : ""}${esgotado ? " esgotado" : ""}`}>
+    <article className={`produto${qtd ? " no-carrinho" : ""}${esgotado ? " esgotado" : ""}${selo ? " com-selo" : ""}`}>
       {p.foto
         ? <div className="produto__foto"><img src={p.foto} alt="" loading="lazy" decoding="async" /></div>
         : <div className="produto__emoji" aria-hidden="true">{p.emoji || "🛍️"}</div>}

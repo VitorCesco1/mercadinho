@@ -339,6 +339,8 @@ h1, h2, h3, p { margin: 0; }
   overflow: hidden;
 }
 .produto__foto img { position: absolute; inset: 12px; width: calc(100% - 24px); height: calc(100% - 24px); object-fit: contain; }
+/* com selo ("Mais pedido", "1º"), a foto desce pra o selo não cobrir o produto */
+.produto.com-selo .produto__foto img { top: 34px; height: calc(100% - 46px); }
 .produto__emoji {
   aspect-ratio: 1 / 0.86;
   overflow: hidden;
