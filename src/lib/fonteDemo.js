@@ -15,8 +15,9 @@ const banco = {
   clientes: clientesBase.map(c => ({ ...c })),
   vendas: vendasBase.map(v => ({ ...v })),
   avisos: [],
+  pagamentosInformados: [],
 };
-const ouvintes = { produtos: new Set(), clientes: new Set(), vendas: new Set(), avisos: new Set() };
+const ouvintes = { produtos: new Set(), clientes: new Set(), vendas: new Set(), avisos: new Set(), pagamentosInformados: new Set() };
 const espera = (ms = 250) => new Promise(r => setTimeout(r, ms));
 let seq = 1;
 const novoId = (p) => `${p}-${Date.now().toString(36)}-${seq++}`;
@@ -65,6 +66,13 @@ export const salvarEstatisticas = async () => {};
 
 const editar = (colecao, id, d) => { const x = banco[colecao].find(i => i.id === id); if (x) Object.assign(x, d); avisar(colecao); };
 const remover = (colecao, id) => { banco[colecao] = banco[colecao].filter(i => i.id !== id); avisar(colecao); };
+
+export async function informarPagamento(aviso) {
+  await espera(300);
+  banco.pagamentosInformados.push({ id: novoId("demo-aviso-pag"), ...aviso, dataLocal: Date.now() });
+  avisar("pagamentosInformados");
+}
+export const ouvirPagamentosInformados = (cb) => ouvir("pagamentosInformados", x => x, cb);
 
 export async function marcarPedidosPagos(ids, dataPagamento) {
   await espera(400);

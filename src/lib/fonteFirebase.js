@@ -102,6 +102,13 @@ export async function salvarEstatisticas(dados) {
   try { await setDoc(doc(db, "estatisticas", "loja"), dados); } catch (e) { console.error("salvar estatisticas:", e); }
 }
 
+// Cliente avisou que pagou (coleção nova, só acréscimo). Não dá baixa em nada: o dono confere e quita.
+export async function informarPagamento(aviso) {
+  await addDoc(collection(db, "pagamentosInformados"), { ...aviso, dataCriacao: serverTimestamp(), dataLocal: Date.now() });
+}
+export const ouvirPagamentosInformados = (cb) =>
+  onSnapshot(collection(db, "pagamentosInformados"), s => cb(lista(s)), e => console.error("pagamentos informados:", e));
+
 // Cobrança: quita (ou reabre) vários pedidos de uma vez. Tudo ou nada (batch atômico).
 // Mesmos campos que o "Marcar como pago" de sempre: pago + dataPagamento em texto.
 export async function marcarPedidosPagos(ids, dataPagamento) {

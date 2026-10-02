@@ -1,10 +1,32 @@
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Icone from "../componentes/Icone.jsx";
-import { CopiarPix } from "../componentes/Pecas.jsx";
+import PagarSaldo from "../componentes/PagarSaldo.jsx";
 import { fmt, nomeCurto } from "../lib/formato.js";
-import { chaveMes, dataCurta, msDaVenda, nomeMes } from "../lib/datas.js";
+import { chaveMes, dataCurta, msDaVenda, nomeMes, quandoFoi } from "../lib/datas.js";
+import { ASSINATURA, mesesDeCobranca, rotuloMes } from "../lib/cobranca.js";
+import { gravar, ler } from "../lib/memoria.js";
+import useFecharNoVoltar from "../lib/useFecharNoVoltar.js";
 
-export default function MeusPedidos({ cliente, vendas, emAberto, onVoltar, onSair }) {
+export default function MeusPedidos({ cliente, vendas, emAberto, api, onVoltar, onSair }) {
+  const [pagando, setPagando] = useState(false);
+  const fecharPagar = useCallback(() => setPagando(false), []);
+  useFecharNoVoltar(pagando, fecharPagar);
+  useEffect(() => {
+    document.documentElement.style.overflow = pagando ? "hidden" : "";
+  }, [pagando]);
+
+  // Último "já paguei" deste cliente, guardado no próprio celular
+  const chaveAviso = `aviso-pagamento.${cliente.id}`;
+  const [aviso, setAviso] = useState(() => ler(chaveAviso));
+  const registrarAviso = (a) => { setAviso(a); gravar(chaveAviso, a); };
+
+  const mesesAbertos = useMemo(
+    () => mesesDeCobranca(vendas).filter(m => m.aberto > 0).sort((a, b) => a.chave.localeCompare(b.chave)),
+    [vendas],
+  );
+  // O aviso some daqui quando o dono quita os meses avisados
+  const avisou = aviso?.meses?.some(k => mesesAbertos.some(m => m.chave === k)) ? aviso : null;
+
   const meses = useMemo(() => {
     const grupos = new Map();
     for (const v of vendas) {
@@ -24,10 +46,23 @@ export default function MeusPedidos({ cliente, vendas, emAberto, onVoltar, onSai
 
       {emAberto > 0 && (
         <section className="cartao saldo">
-          <div className="saldo__linha"><span>Em aberto pro fim do mês</span><strong>{fmt(emAberto)}</strong></div>
-          <p>Pra acertar, faça um PIX de {fmt(emAberto)} com o código do mercadinho.</p>
-          <CopiarPix />
+          <div className="saldo__linha"><span>Seu saldo em aberto</span><strong>{fmt(emAberto)}</strong></div>
+          {mesesAbertos.length > 1 && (
+            <ul className="saldo__meses">
+              {mesesAbertos.map(m => <li key={m.chave}><span>{rotuloMes(m.chave)}</span><b>{fmt(m.aberto)}</b></li>)}
+            </ul>
+          )}
+          {avisou
+            ? <p className="saldo__avisou"><Icone nome="check" tamanho={17} espessura={2.6} />Você avisou que pagou {fmt(avisou.valor)} {quandoFoi(avisou.ms)}. Assim que o {ASSINATURA} conferir, sai daqui.</p>
+            : <p>Pague no PIX e mande o comprovante pro {ASSINATURA} pelo WhatsApp.</p>}
+          <button type="button" className="btn-pagar" onClick={() => setPagando(true)}>
+            <Icone nome="pix" tamanho={20} />Pagar agora
+          </button>
         </section>
+      )}
+
+      {pagando && mesesAbertos.length > 0 && (
+        <PagarSaldo cliente={cliente} mesesAbertos={mesesAbertos} api={api} onFechar={fecharPagar} onAvisou={registrarAviso} />
       )}
 
       {!vendas.length && <div className="vazio">Você ainda não fez nenhum pedido.</div>}

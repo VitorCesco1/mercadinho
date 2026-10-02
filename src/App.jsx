@@ -158,7 +158,7 @@ export default function App() {
       />
 
       {tela === "pedidos" && cliente
-        ? <MeusPedidos cliente={cliente} vendas={minhasVendas} emAberto={emAberto} onVoltar={voltarLoja} onSair={sair} />
+        ? <MeusPedidos cliente={cliente} vendas={minhasVendas} emAberto={emAberto} api={api} onVoltar={voltarLoja} onSair={sair} />
         : (
           <Loja
             produtos={produtos} erroProdutos={erroProdutos} avisos={avisos} stats={stats}

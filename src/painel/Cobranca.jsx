@@ -1,24 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import Icone from "../componentes/Icone.jsx";
+import PreviaWhatsApp from "../componentes/PreviaWhatsApp.jsx";
 import { agoraTexto, fmt, nomeCurto } from "../lib/formato.js";
-import { chaveMes, dataCurta, msDaVenda } from "../lib/datas.js";
+import { chaveMes, msDaVenda, quandoFoi } from "../lib/datas.js";
 import { CHAVE_PIX, copiarTexto } from "../lib/pix.js";
 import { cobrancaDoMes, linkWhatsApp, mensagemCobranca, mesesDeCobranca, mesPadrao, rotuloMes } from "../lib/cobranca.js";
 import { gravar, ler } from "../lib/memoria.js";
 
 const DEMO = import.meta.env.MODE === "demo";
 
-const quando = (ms) => {
-  const [dia, hora] = dataCurta(ms).split(", ");
-  if (dia === "Hoje") return `hoje às ${hora}`;
-  if (dia === "Ontem") return `ontem às ${hora}`;
-  return `em ${dia}`;
-};
+const quando = quandoFoi;
 const nomeDoMes = (chave) => rotuloMes(chave).split("/")[0].toLowerCase();
 const plural = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
 const momento = () => Date.now();
 
-export default function Cobranca({ vendas, clientes, api }) {
+export default function Cobranca({ vendas, clientes, api, pagamentosAConferir = [] }) {
   const meses = useMemo(() => mesesDeCobranca(vendas), [vendas]);
   const [escolhido, setEscolhido] = useState(null);
   const [filtro, setFiltro] = useState("aberto");
@@ -29,7 +25,10 @@ export default function Cobranca({ vendas, clientes, api }) {
   const mes = escolhido && meses.some(m => m.chave === escolhido) ? escolhido : mesPadrao(meses, agora);
   const lista = useMemo(() => cobrancaDoMes(vendas, mes, clientes), [vendas, mes, clientes]);
   const resumo = meses.find(m => m.chave === mes) || { aberto: 0, pago: 0 };
-  const emAberto = lista.filter(c => c.aberto > 0);
+  // cliente que avisou "já paguei" referente a este mês
+  const avisoDe = new Map(pagamentosAConferir.filter(a => a.meses?.includes(mes)).map(a => [a.clienteId, a]));
+  // quem avisou que pagou aparece primeiro: é só conferir no extrato e quitar
+  const emAberto = lista.filter(c => c.aberto > 0).sort((a, b) => avisoDe.has(b.clienteId) - avisoDe.has(a.clienteId));
   const quitados = lista.filter(c => c.aberto === 0);
   const mostrados = filtro === "aberto" ? emAberto : quitados;
   const total = resumo.aberto + resumo.pago;
@@ -73,7 +72,7 @@ export default function Cobranca({ vendas, clientes, api }) {
 
       {mostrados.map(c => (
         <ClienteCobranca
-          key={`${mes}:${c.clienteId}`} c={c} mes={mes} api={api}
+          key={`${mes}:${c.clienteId}`} c={c} mes={mes} api={api} avisoPagamento={c.aberto > 0 ? avisoDe.get(c.clienteId) : null}
           enviadoEm={enviados[`${mes}:${c.clienteId}`]} onEnviado={() => registrarEnvio(c.clienteId)} onPrevia={setPrevia}
         />
       ))}
@@ -81,23 +80,12 @@ export default function Cobranca({ vendas, clientes, api }) {
         <div className="vazio">{filtro === "aberto" ? `Ninguém deve nada de ${nomeDoMes(mes)}. 🎉` : `Ninguém quitou ${nomeDoMes(mes)} ainda.`}</div>
       )}
 
-      {previa && (
-        <div className="folha">
-          <div className="veu" onClick={() => setPrevia(null)} />
-          <div className="folha__painel" role="dialog" aria-modal="true" aria-label="Prévia da mensagem">
-            <div className="folha__alca" />
-            <h2 className="folha__titulo">Prévia do WhatsApp</h2>
-            <p className="folha__sub">Na versão real, o botão abre a conversa com {previa.nome} ({previa.telefone}) com esta mensagem pronta:</p>
-            <div className="previa-msg">{previa.msg}</div>
-            <button type="button" className="btn-principal" onClick={() => setPrevia(null)}>Fechar</button>
-          </div>
-        </div>
-      )}
+      {previa && <PreviaWhatsApp para={`${previa.nome} (${previa.telefone})`} texto={previa.msg} onFechar={() => setPrevia(null)} />}
     </section>
   );
 }
 
-function ClienteCobranca({ c, mes, api, enviadoEm, onEnviado, onPrevia }) {
+function ClienteCobranca({ c, mes, api, avisoPagamento, enviadoEm, onEnviado, onPrevia }) {
   const [confirma, setConfirma] = useState(null);
   const [salvando, setSalvando] = useState(false);
   const [copiado, setCopiado] = useState(null);
@@ -152,6 +140,16 @@ function ClienteCobranca({ c, mes, api, enviadoEm, onEnviado, onPrevia }) {
       </div>
 
       {quitado && <p className="cob-nota ok"><Icone nome="check" tamanho={16} espessura={2.6} />Quitado{c.pagoEm ? ` em ${c.pagoEm.split(",")[0]}` : ""}</p>}
+      {avisoPagamento && (
+        <div className="cob-avisou">
+          <Icone nome="conversa" tamanho={18} />
+          <p>
+            <b>Avisou que pagou {fmt(avisoPagamento.valor)}</b> {quando(avisoPagamento.dataLocal)}
+            {avisoPagamento.meses.length > 1 && ` (${avisoPagamento.meses.map(k => nomeDoMes(k)).join(" e ")})`}.
+            {" "}Confira o comprovante no WhatsApp e o extrato antes de quitar.
+          </p>
+        </div>
+      )}
       {!quitado && c.pago > 0 && <p className="cob-nota">{fmt(c.pago)} desse mês já foi pago.</p>}
       {!quitado && enviadoEm && <p className="cob-nota enviado"><Icone nome="conversa" tamanho={15} />Cobrança enviada {quando(enviadoEm)}</p>}
 
@@ -168,7 +166,7 @@ function ClienteCobranca({ c, mes, api, enviadoEm, onEnviado, onPrevia }) {
         </ul>
       </details>
 
-      {!quitado && (
+      {!quitado && !avisoPagamento && (
         <div className="cob-acoes">
           {link
             ? <a className="btn-whats" href={link} target="_blank" rel="noopener noreferrer" onClick={abrirWhats}><Icone nome="conversa" tamanho={19} />Cobrar no WhatsApp</a>
@@ -187,7 +185,7 @@ function ClienteCobranca({ c, mes, api, enviadoEm, onEnviado, onPrevia }) {
           {salvando ? "Salvando…" : confirma === "reabrir" ? "Toque de novo pra reabrir" : "Desfazer esse acerto"}
         </button>
       ) : (
-        <button type="button" className={`btn-quitar${confirma === "quitar" ? " confirmar" : ""}`} disabled={salvando} onClick={() => tocar("quitar")}>
+        <button type="button" className={`btn-quitar${confirma === "quitar" ? " confirmar" : ""}${avisoPagamento ? " destaque" : ""}`} disabled={salvando} onClick={() => tocar("quitar")}>
           {salvando ? <><span className="girando" />Salvando…</>
             : confirma === "quitar" ? `Toque de novo pra confirmar ${fmt(c.aberto)}`
             : `Marcar ${nomeDoMes(mes)} todo como pago`}

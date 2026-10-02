@@ -5,6 +5,7 @@ import Cobranca from "./Cobranca.jsx";
 import { fmt, agoraTexto as nowStr } from "../lib/formato.js";
 import { msDaVenda } from "../lib/datas.js";
 import { calcularEstatisticas, categoriaDe } from "../lib/sugestoes.js";
+import { avisosPendentes } from "../lib/cobranca.js";
 
 const SENHA_DONO = "dono123";
 
@@ -54,6 +55,7 @@ export default function PainelDono({ api, voltar }) {
   const [vendas,   setVendas]   = useState([]);
   const [clientes, setClientes] = useState([]);
   const [avisos,   setAvisos]   = useState([]);
+  const [pagInformados, setPagInformados] = useState([]);
   const [erroConexao, setErroConexao] = useState(null);
 
   useEffect(() => {
@@ -63,7 +65,8 @@ export default function PainelDono({ api, voltar }) {
     const b = api.ouvirVendas(l => { setVendas(l); setErroConexao(null); }, () => setErroConexao("Erro ao carregar vendas. Verifique a conexão."));
     const c = api.ouvirClientes(setClientes);
     const d = api.ouvirAvisos(setAvisos);
-    return () => { a(); b(); c(); d(); };
+    const e = api.ouvirPagamentosInformados(setPagInformados);
+    return () => { a(); b(); c(); d(); e(); };
   }, [auth, api]);
 
   // Atualiza o resumo "mais vendidos / combos" que a loja usa nas sugestões (só ids e contagens)
@@ -100,6 +103,7 @@ export default function PainelDono({ api, voltar }) {
   const totalPendente = vendas.filter(v=>v.pagamento==="fim_do_mes"&&!v.pago).reduce((a,v)=>a+v.total,0);
   const totalRecebido = vendas.filter(v=>v.pagamento==="na_hora"||v.pago).reduce((a,v)=>a+v.total,0);
   const ABAS = [["dashboard","Dashboard"],["cobranca","Cobrança"],["vendas","Vendas"],["produtos","Produtos"],["clientes","Clientes"],["avisos","Avisos"]];
+  const pagamentosAConferir = avisosPendentes(pagInformados, vendas);
 
   return (
     <div className="painel">
@@ -112,14 +116,19 @@ export default function PainelDono({ api, voltar }) {
         </div>
         <nav className="painel-abas" aria-label="Seções do painel">
           {ABAS.map(([k, nome]) => (
-            <button type="button" key={k} className={`painel-aba${aba === k ? " ativo" : ""}`} onClick={() => setAba(k)} aria-pressed={aba === k}>{nome}</button>
+            <button type="button" key={k} className={`painel-aba${aba === k ? " ativo" : ""}`} onClick={() => setAba(k)} aria-pressed={aba === k}>
+              {nome}
+              {k === "cobranca" && pagamentosAConferir.length > 0 && (
+                <span className="painel-aba__selo" aria-label={`${pagamentosAConferir.length} pagamentos pra conferir`}>{pagamentosAConferir.length}</span>
+              )}
+            </button>
           ))}
         </nav>
       </header>
       <main className="painel-corpo">
         {erroConexao && <div className="erro-caixa" role="alert">{erroConexao}</div>}
         {aba==="dashboard" && <Dashboard vendas={vendas} clientes={clientes} />}
-        {aba==="cobranca"  && <Cobranca vendas={vendas} clientes={clientes} api={api} />}
+        {aba==="cobranca"  && <Cobranca vendas={vendas} clientes={clientes} api={api} pagamentosAConferir={pagamentosAConferir} />}
         {aba==="produtos"  && <GerenciarProdutos produtos={produtos} ops={ops} />}
         {aba==="vendas"    && <GerenciarVendas vendas={vendas} ops={ops} />}
         {aba==="clientes"  && <VerClientes clientes={clientes} vendas={vendas} />}

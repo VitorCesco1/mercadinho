@@ -22,6 +22,14 @@ const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julh
 export const chaveMes = (ms) => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; };
 export const nomeMes = (chave) => { const [a, m] = chave.split("-"); return `${MESES[+m - 1]} de ${a}`; };
 
+// "hoje às 14:32", "ontem às 09:10", "em 28/09"
+export function quandoFoi(ms) {
+  const [dia, hora] = dataCurta(ms).split(", ");
+  if (dia === "Hoje") return `hoje às ${hora}`;
+  if (dia === "Ontem") return `ontem às ${hora}`;
+  return `em ${dia}`;
+}
+
 export function dataCurta(ms) {
   const d = new Date(ms);
   const hoje = new Date();

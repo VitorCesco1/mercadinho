@@ -5,6 +5,8 @@ import { fmt, primeiroNome } from "./formato.js";
 import { CHAVE_PIX } from "./pix.js";
 
 export const ASSINATURA = "Vitor";
+// WhatsApp do mercadinho, pra onde o cliente avisa que pagou. Vazio: o WhatsApp abre e a pessoa escolhe o contato.
+export const WHATSAPP_MERCADINHO = "";
 
 const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 export const rotuloMes = (chave) => { const [a, m] = chave.split("-"); return `${MESES[+m - 1]}/${a}`; };
@@ -88,4 +90,32 @@ export function numeroWhatsApp(telefone) {
 export function linkWhatsApp(telefone, texto) {
   const n = numeroWhatsApp(telefone);
   return n ? `https://wa.me/${n}?text=${encodeURIComponent(texto)}` : null;
+}
+
+// ── cliente avisando que pagou ──
+const listaDeMeses = (chaves) => {
+  const nomes = [...chaves].sort().map(k => rotuloMes(k).toLowerCase());
+  return nomes.length > 1 ? `${nomes.slice(0, -1).join(", ")} e ${nomes.at(-1)}` : nomes[0];
+};
+
+export function mensagemAvisoPagamento(nome, chaves, valor) {
+  return `Oi, ${ASSINATURA}! ${nome.trim()} aqui 😊 Acabei de fazer o PIX de *${fmt(valor)}* do Mercadinho, ` +
+    `referente a ${listaDeMeses(chaves)}. Segue o comprovante 👇`;
+}
+
+export function linkWhatsAppMercadinho(texto) {
+  const n = numeroWhatsApp(WHATSAPP_MERCADINHO);
+  return `https://wa.me/${n || ""}?text=${encodeURIComponent(texto)}`;
+}
+
+// Avisos de pagamento que ainda têm pedido em aberto nos meses avisados (o mais recente de cada cliente).
+// Some sozinho quando o dono quita, sem precisar gravar nada no aviso.
+export function avisosPendentes(avisos, vendas) {
+  const ultimo = new Map();
+  for (const a of avisos) {
+    const atual = ultimo.get(a.clienteId);
+    if (!atual || (a.dataLocal || 0) > (atual.dataLocal || 0)) ultimo.set(a.clienteId, a);
+  }
+  const abertos = new Set(vendas.filter(v => fiado(v) && !v.pago).map(v => `${v.clienteId}|${chaveMes(msDaVenda(v))}`));
+  return [...ultimo.values()].filter(a => (a.meses || []).some(k => abertos.has(`${a.clienteId}|${k}`)));
 }

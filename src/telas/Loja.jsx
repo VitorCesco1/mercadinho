@@ -60,8 +60,8 @@ export default function Loja({ produtos, erroProdutos, avisos, stats, cliente, e
             {emAberto > 0 && (
               <button type="button" className="em-aberto" onClick={onPedidos}>
                 <Icone nome="calendario" />
-                <span>Você tem <strong>{fmt(emAberto)}</strong> anotado pro fim do mês</span>
-                <span>Ver</span>
+                <span>Você tem <strong>{fmt(emAberto)}</strong> em aberto no fim do mês</span>
+                <span>Pagar</span>
               </button>
             )}
           </>
