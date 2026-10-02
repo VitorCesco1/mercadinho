@@ -6,7 +6,7 @@ import { CHAVE_PIX } from "./pix.js";
 
 export const ASSINATURA = "Vitor";
 // WhatsApp do mercadinho, pra onde o cliente avisa que pagou. Vazio: o WhatsApp abre e a pessoa escolhe o contato.
-export const WHATSAPP_MERCADINHO = "";
+export const WHATSAPP_MERCADINHO = "(49) 99965-2792";
 
 const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 export const rotuloMes = (chave) => { const [a, m] = chave.split("-"); return `${MESES[+m - 1]}/${a}`; };
