@@ -1,5 +1,7 @@
-// Painel do dono. Na Fase 1 só mudou de arquivo e de cores; Fases 2 e 3 repaginam de verdade.
+// Painel do dono. Fase 2: topo/abas novos + aba Cobrança. As outras abas ficam pra Fase 3.
 import { useState, useEffect, useRef } from "react";
+import Icone from "../componentes/Icone.jsx";
+import Cobranca from "./Cobranca.jsx";
 import { fmt, agoraTexto as nowStr } from "../lib/formato.js";
 import { msDaVenda } from "../lib/datas.js";
 import { calcularEstatisticas, categoriaDe } from "../lib/sugestoes.js";
@@ -77,50 +79,53 @@ export default function PainelDono({ api, voltar }) {
   }, [auth, api, vendas]);
 
   const ops = api || {};
-  const conferir = () => (senha===SENHA_DONO ? setAuth(true) : setErrSenha(true));
+  const conferir = (e) => { e.preventDefault(); if (senha === SENHA_DONO) setAuth(true); else setErrSenha(true); };
 
   if (!auth) return (
-    <Tela>
-      <div style={{ maxWidth:"340px",margin:"auto",padding:"80px 16px 0" }}>
-        <div style={{ textAlign:"center",marginBottom:"28px" }}>
-          <div style={{ fontSize:"48px" }}>👑</div>
-          <h2 style={{ color:C.text,margin:"8px 0 4px",fontWeight:800 }}>Painel do Dono</h2>
-          <p style={{ color:C.muted,margin:0,fontSize:"13px" }}>Acesso restrito</p>
-        </div>
-        <input type="password" placeholder="Senha" value={senha}
-          onChange={e=>{ setSenha(e.target.value); setErrSenha(false); }}
-          style={{ ...inp,textAlign:"center",fontSize:"20px",letterSpacing:"6px",marginBottom:"12px" }}
-          onKeyDown={e=>e.key==="Enter"&&conferir()} />
-        {errSenha&&<p style={{ color:C.red,textAlign:"center",fontSize:"13px",margin:"0 0 10px" }}>Senha incorreta</p>}
-        <button style={{ ...btnS(C.gold,false,true),padding:"13px",marginBottom:"10px" }} onClick={conferir}>Entrar</button>
-        <button style={{ ...btnS(C.muted,true,true) }} onClick={voltar}>← Voltar</button>
-      </div>
-    </Tela>
+    <form className="painel-entrar" onSubmit={conferir}>
+      <div className="painel-entrar__icone">👑</div>
+      <h1>Painel do Dono</h1>
+      <p>Acesso restrito</p>
+      <label className="campo">
+        <span className="sr">Senha</span>
+        <input type="password" placeholder="Senha" value={senha} autoComplete="current-password"
+          onChange={e => { setSenha(e.target.value); setErrSenha(false); }} />
+      </label>
+      {errSenha && <p className="erro" role="alert">Senha incorreta</p>}
+      <button type="submit" className="btn-principal">Entrar</button>
+      <button type="button" className="btn-texto" onClick={voltar}>Voltar pra loja</button>
+    </form>
   );
 
   const totalPendente = vendas.filter(v=>v.pagamento==="fim_do_mes"&&!v.pago).reduce((a,v)=>a+v.total,0);
   const totalRecebido = vendas.filter(v=>v.pagamento==="na_hora"||v.pago).reduce((a,v)=>a+v.total,0);
+  const ABAS = [["dashboard","Dashboard"],["cobranca","Cobrança"],["vendas","Vendas"],["produtos","Produtos"],["clientes","Clientes"],["avisos","Avisos"]];
 
   return (
-    <Tela>
-      <Header titulo="👑 Painel do Dono" onVoltar={()=>{ setAuth(false); voltar(); }}>
-        <Chip label="Recebido"  value={fmt(totalRecebido)} cor={C.green} />
-        <Chip label="A receber" value={fmt(totalPendente)} cor={C.orange} />
-      </Header>
-      {erroConexao&&(
-        <div style={{ background:`${C.red}18`,border:`1px solid ${C.red}`,borderRadius:"10px",padding:"10px 14px",margin:"12px 16px 0",color:C.red,fontSize:"13px" }}>
-          ⚠️ {erroConexao}
+    <div className="painel">
+      <header className="painel-topo">
+        <div className="painel-topo__linha">
+          <button type="button" className="icone-btn" onClick={() => { setAuth(false); voltar(); }} aria-label="Sair do painel"><Icone nome="voltar" /></button>
+          <h1 className="painel-topo__titulo">Painel do Dono</h1>
+          <div className="painel-numero painel-numero--ok"><small>Recebido</small><b>{fmt(totalRecebido)}</b></div>
+          <div className="painel-numero painel-numero--aberto"><small>A receber</small><b>{fmt(totalPendente)}</b></div>
         </div>
-      )}
-      <Tabs abas={[["dashboard","📊 Dashboard"],["produtos","📦 Produtos"],["vendas","📋 Vendas"],["clientes","👥 Clientes"],["avisos","📢 Avisos"]]} atual={aba} onChange={setAba} cor={C.gold} />
-      <div style={{ padding:"0 16px 40px" }}>
+        <nav className="painel-abas" aria-label="Seções do painel">
+          {ABAS.map(([k, nome]) => (
+            <button type="button" key={k} className={`painel-aba${aba === k ? " ativo" : ""}`} onClick={() => setAba(k)} aria-pressed={aba === k}>{nome}</button>
+          ))}
+        </nav>
+      </header>
+      <main className="painel-corpo">
+        {erroConexao && <div className="erro-caixa" role="alert">{erroConexao}</div>}
         {aba==="dashboard" && <Dashboard vendas={vendas} clientes={clientes} />}
+        {aba==="cobranca"  && <Cobranca vendas={vendas} clientes={clientes} api={api} />}
         {aba==="produtos"  && <GerenciarProdutos produtos={produtos} ops={ops} />}
         {aba==="vendas"    && <GerenciarVendas vendas={vendas} ops={ops} />}
         {aba==="clientes"  && <VerClientes clientes={clientes} vendas={vendas} />}
         {aba==="avisos"    && <GerenciarAvisos avisos={avisos} ops={ops} />}
-      </div>
-    </Tela>
+      </main>
+    </div>
   );
 }
 
@@ -426,37 +431,8 @@ function VerClientes({ clientes,vendas }) {
   );
 }
 
-function Tela({ children }) {
-  return <div style={{ minHeight:"100vh",color:C.text }}>{children}</div>;
-}
-function Header({ titulo,onVoltar,children }) {
-  return (
-    <div style={{ background:"rgba(3,36,44,0.95)",backdropFilter:"blur(12px)",borderBottom:`1px solid ${C.border}`,padding:"12px 16px",display:"flex",alignItems:"center",gap:"10px",flexWrap:"wrap",position:"sticky",top:0,zIndex:10 }}>
-      <button onClick={onVoltar} style={{ background:"transparent",border:`1px solid ${C.border}`,borderRadius:"8px",color:C.muted,cursor:"pointer",padding:"6px 10px",fontSize:"13px",fontFamily:"inherit",flexShrink:0 }}>← Sair</button>
-      <span style={{ color:C.text,fontWeight:800,fontSize:"15px",flex:1 }}>{titulo}</span>
-      <div style={{ display:"flex",gap:"8px",flexWrap:"wrap" }}>{children}</div>
-    </div>
-  );
-}
-function Tabs({ abas,atual,onChange,cor }) {
-  return (
-    <div style={{ display:"flex",padding:"14px 16px 0",gap:0,overflowX:"auto" }}>
-      {abas.map(([key,label],i)=>(
-        <button key={key} onClick={()=>onChange(key)} style={{ padding:"8px 12px",border:"none",cursor:"pointer",fontSize:"12px",whiteSpace:"nowrap",fontFamily:"inherit",borderRadius:i===0?"10px 0 0 0":i===abas.length-1?"0 10px 0 0":"0",background:atual===key?`${cor}12`:"rgba(255,255,255,0.03)",color:atual===key?cor:C.muted,fontWeight:atual===key?"bold":"normal",borderBottom:atual===key?`2px solid ${cor}`:`2px solid transparent` }}>{label}</button>
-      ))}
-    </div>
-  );
-}
 function Card({ children,style={} }) {
   return <div style={{ background:C.card,border:`1px solid ${C.border}`,borderRadius:"12px",padding:"14px 16px",...style }}>{children}</div>;
-}
-function Chip({ label,value,cor }) {
-  return (
-    <div style={{ background:`${cor}12`,border:`1px solid ${cor}33`,borderRadius:"8px",padding:"4px 10px",textAlign:"center",flexShrink:0 }}>
-      <div style={{ color:"rgba(255,255,255,0.45)",fontSize:"9px" }}>{label}</div>
-      <div style={{ color:cor,fontWeight:"bold",fontSize:"13px" }}>{value}</div>
-    </div>
-  );
 }
 function Campo({ label,children }) {
   return (

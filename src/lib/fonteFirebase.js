@@ -4,7 +4,7 @@
 import { initializeApp } from "firebase/app";
 import {
   getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, onSnapshot,
-  updateDoc, deleteDoc, serverTimestamp, query, where,
+  updateDoc, deleteDoc, serverTimestamp, query, where, writeBatch, deleteField,
 } from "firebase/firestore";
 import { ordenarVendas } from "./datas.js";
 
@@ -100,6 +100,19 @@ export async function lerEstatisticas() {
 }
 export async function salvarEstatisticas(dados) {
   try { await setDoc(doc(db, "estatisticas", "loja"), dados); } catch (e) { console.error("salvar estatisticas:", e); }
+}
+
+// Cobrança: quita (ou reabre) vários pedidos de uma vez. Tudo ou nada (batch atômico).
+// Mesmos campos que o "Marcar como pago" de sempre: pago + dataPagamento em texto.
+export async function marcarPedidosPagos(ids, dataPagamento) {
+  const lote = writeBatch(db);
+  ids.forEach(id => lote.update(doc(db, "vendas", id), { pago: true, dataPagamento }));
+  await lote.commit();
+}
+export async function reabrirPedidos(ids) {
+  const lote = writeBatch(db);
+  ids.forEach(id => lote.update(doc(db, "vendas", id), { pago: false, dataPagamento: deleteField() }));
+  await lote.commit();
 }
 
 export const atualizarProduto = async (id, d) => { try { await updateDoc(doc(db, "produtos", id), d); } catch (e) { console.error(e); } };

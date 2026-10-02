@@ -66,6 +66,17 @@ export const salvarEstatisticas = async () => {};
 const editar = (colecao, id, d) => { const x = banco[colecao].find(i => i.id === id); if (x) Object.assign(x, d); avisar(colecao); };
 const remover = (colecao, id) => { banco[colecao] = banco[colecao].filter(i => i.id !== id); avisar(colecao); };
 
+export async function marcarPedidosPagos(ids, dataPagamento) {
+  await espera(400);
+  for (const v of banco.vendas) if (ids.includes(v.id)) Object.assign(v, { pago: true, dataPagamento });
+  avisar("vendas");
+}
+export async function reabrirPedidos(ids) {
+  await espera(400);
+  for (const v of banco.vendas) if (ids.includes(v.id)) { v.pago = false; delete v.dataPagamento; }
+  avisar("vendas");
+}
+
 export const atualizarProduto = async (id, d) => editar("produtos", id, d);
 export const adicionarProduto = async (d) => { banco.produtos.push({ id: novoId("demo-prod"), ...d }); avisar("produtos"); };
 export const removerProduto = async (id) => remover("produtos", id);
