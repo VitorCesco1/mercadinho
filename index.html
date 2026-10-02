@@ -1,13 +1,30 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Mercadinho Transcredi</title>
+    <meta name="description" content="Mercadinho dos colaboradores do Sicoob Transcredi. Lanches, doces e bebidas com pagamento no PIX ou no fim do mês." />
+    <meta name="theme-color" content="#ffffff" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mercadinho</title>
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Mercadinho" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- fonte carregada sem travar a primeira pintura da tela -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
+    <style>
+      html, body { margin: 0; background: #03242c; }
+      .splash { min-height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; font-family: system-ui, sans-serif; color: #b0cfcb; font-size: 14px; }
+      .splash i { width: 28px; height: 28px; border-radius: 50%; border: 3px solid #00ae9d; border-right-color: transparent; animation: g .7s linear infinite; }
+      @keyframes g { to { transform: rotate(360deg); } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div class="splash"><i></i>Mercadinho Transcredi</div></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

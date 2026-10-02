@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Modo demonstração: dados gerados a partir do backup (não vão pro GitHub)
+src/lib/demo/dados/
+dist-demo
+validacao
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
