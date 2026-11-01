@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import CartaoProduto from "../componentes/CartaoProduto.jsx";
 import Icone from "../componentes/Icone.jsx";
 import { CATEGORIAS, categoriaDe, maisPedidos } from "../lib/sugestoes.js";
-import { fmt, primeiroNome, semAcento } from "../lib/formato.js";
+import { primeiroNome, semAcento } from "../lib/formato.js";
 
-export default function Loja({ produtos, erroProdutos, avisos, stats, cliente, emAberto, qtdPorId, onAdd, onMenos, onPedidos, onCoroa }) {
+export default function Loja({ produtos, erroProdutos, avisos, stats, cliente, qtdPorId, onAdd, onMenos, onPedidos, onCoroa }) {
   const [busca, setBusca] = useState("");
   const [ativa, setAtiva] = useState("");
 
@@ -55,16 +55,8 @@ export default function Loja({ produtos, erroProdutos, avisos, stats, cliente, e
       <section className="ola">
         <p className="ola__marca">Mercadinho Transcredi</p>
         {cliente ? (
-          <>
-            <h1 className="ola__titulo">Olá, {primeiroNome(cliente.nome)}! O que vai ser hoje?</h1>
-            {emAberto > 0 && (
-              <button type="button" className="em-aberto" onClick={onPedidos}>
-                <Icone nome="calendario" />
-                <span>Você tem <strong>{fmt(emAberto)}</strong> em aberto no fim do mês</span>
-                <span>Pagar</span>
-              </button>
-            )}
-          </>
+          // O saldo em aberto fica só em "Minhas compras": na vitrine ele desanima a compra
+          <h1 className="ola__titulo">Olá, {primeiroNome(cliente.nome)}! O que vai ser hoje?</h1>
         ) : (
           <>
             <h1 className="ola__titulo">O que vai ser hoje?</h1>
@@ -136,6 +128,11 @@ export default function Loja({ produtos, erroProdutos, avisos, stats, cliente, e
       {produtos && !visiveis.length && <div className="vazio">Nenhum produto disponível agora.</div>}
 
       <footer className="rodape">
+        {cliente && (
+          <button type="button" className="rodape__compras" onClick={onPedidos}>
+            <Icone nome="recibo" tamanho={18} />Minhas compras
+          </button>
+        )}
         <p>Mercadinho dos colaboradores do Sicoob Transcredi</p>
         <p>Concórdia, SC</p>
         <button type="button" className="coroa" onClick={onCoroa} aria-label="Área do responsável">👑</button>

@@ -10,7 +10,7 @@ const TITULOS = { itens: "Seu carrinho", pagamento: "Pagamento", pix: "Pagar com
 const ANTERIOR = { pagamento: "itens", pix: "pagamento", mes: "pagamento" };
 
 export default function Carrinho({
-  aberto, passo, setPasso, onFechar, itens, total, produtos, stats, cliente, emAberto,
+  aberto, passo, setPasso, onFechar, itens, total, produtos, stats, cliente,
   onMais, onMenos, onAdd, pedirLogin, finalizar, onVerPedidos,
 }) {
   const [salvando, setSalvando] = useState(false);
@@ -108,7 +108,6 @@ export default function Carrinho({
           <span>
             <span className="opcao__titulo">No fim do mês</span>
             <span className="opcao__desc">Fica anotado e você acerta tudo junto no fim do mês, pelo PIX.</span>
-            {emAberto > 0 && <span className="opcao__extra">Você já tem {fmt(emAberto)} anotado.</span>}
           </span>
           <Icone nome="seta" tamanho={20} />
         </button>
@@ -151,8 +150,6 @@ export default function Carrinho({
         <p className="mes__texto">Esse pedido entra na sua conta e você acerta tudo junto no fim do mês, pelo PIX.</p>
         <div className="resumo">
           <div><span>Este pedido</span><strong>{fmt(total)}</strong></div>
-          {emAberto > 0 && <div><span>Já anotado</span><strong>{fmt(emAberto)}</strong></div>}
-          <div className="destaque"><span>Total em aberto</span><strong>{fmt(emAberto + total)}</strong></div>
         </div>
         {erro && <ErroSalvar />}
       </div>

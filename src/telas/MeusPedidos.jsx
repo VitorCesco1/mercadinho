@@ -41,7 +41,7 @@ export default function MeusPedidos({ cliente, vendas, emAberto, api, onVoltar, 
     <main className="pagina">
       <div className="pagina__topo">
         <button type="button" className="icone-btn" onClick={onVoltar} aria-label="Voltar pra loja"><Icone nome="voltar" /></button>
-        <h1 className="pagina__titulo">Meus pedidos</h1>
+        <h1 className="pagina__titulo">Minhas compras</h1>
       </div>
 
       {emAberto > 0 && (

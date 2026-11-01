@@ -162,7 +162,7 @@ export default function App() {
         : (
           <Loja
             produtos={produtos} erroProdutos={erroProdutos} avisos={avisos} stats={stats}
-            cliente={cliente} emAberto={emAberto} qtdPorId={qtdPorId}
+            cliente={cliente} qtdPorId={qtdPorId}
             onAdd={p => adicionar(p, "loja")} onMenos={tirar} onPedidos={verPedidos} onCoroa={tocarCoroa}
           />
         )}
@@ -187,7 +187,7 @@ export default function App() {
       <Carrinho
         aberto={gaveta} passo={passo} setPasso={setPasso} onFechar={fecharCarrinho}
         itens={itens} total={total} produtos={produtos} stats={stats}
-        cliente={cliente} emAberto={emAberto}
+        cliente={cliente}
         onMais={p => adicionar(p, "carrinho")} onMenos={tirar} onAdd={p => adicionar(p, "carrinho")}
         pedirLogin={pedirLogin} finalizar={finalizar} onVerPedidos={verPedidos}
       />

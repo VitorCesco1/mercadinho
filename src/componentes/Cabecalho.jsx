@@ -9,7 +9,7 @@ export default function Cabecalho({ cliente, qtd, pulso, onCarrinho, onEntrar, o
           <img src={logo} alt="Sicoob Transcredi" width="126" height="32" />
         </button>
         {cliente
-          ? <button type="button" className="topo__btn" onClick={onPedidos} aria-label="Meus pedidos"><Icone nome="recibo" /></button>
+          ? <button type="button" className="topo__btn" onClick={onPedidos} aria-label="Minhas compras"><Icone nome="recibo" /></button>
           : <button type="button" className="topo__entrar" onClick={onEntrar}>Entrar</button>}
         <button type="button" className="topo__btn" onClick={onCarrinho} aria-label={qtd ? `Carrinho com ${qtd} itens` : "Carrinho vazio"}>
           <Icone nome="sacola" tamanho={25} />
