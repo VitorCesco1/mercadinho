@@ -53,7 +53,6 @@ export default function Loja({ produtos, erroProdutos, avisos, stats, cliente, q
   return (
     <main className="loja">
       <section className="ola">
-        <p className="ola__marca">Mercadinho Transcredi</p>
         {cliente ? (
           // O saldo em aberto fica só em "Minhas compras": na vitrine ele desanima a compra
           <h1 className="ola__titulo">Olá, {primeiroNome(cliente.nome)}! O que vai ser hoje?</h1>

@@ -94,7 +94,8 @@ h1, h2, h3, p { margin: 0; }
   gap: 4px;
 }
 .topo__marca { margin-right: auto; display: flex; align-items: center; }
-.topo__marca img { height: 32px; width: auto; }
+.topo__nome { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; color: var(--verde-escuro); white-space: nowrap; }
+.topo__nome b { font-weight: 800; color: #008577; }
 .topo__btn {
   position: relative;
   width: 44px;

@@ -1,12 +1,11 @@
 import Icone from "./Icone.jsx";
-import logo from "../assets/logo-transcredi.webp";
 
 export default function Cabecalho({ cliente, qtd, pulso, onCarrinho, onEntrar, onPedidos, onMarca }) {
   return (
     <header className="topo">
       <div className="topo__dentro">
         <button type="button" className="topo__marca" onClick={onMarca} aria-label="Início">
-          <img src={logo} alt="Sicoob Transcredi" width="126" height="32" />
+          <span className="topo__nome">Mercadinho <b>Transcredi</b></span>
         </button>
         {cliente
           ? <button type="button" className="topo__btn" onClick={onPedidos} aria-label="Minhas compras"><Icone nome="recibo" /></button>
